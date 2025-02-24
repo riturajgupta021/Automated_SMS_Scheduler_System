@@ -1,138 +1,126 @@
-# Automated_SMS_Scheduler_System
+# Automated SMS Scheduler System - MVP
 
-## Overview
-This system enables restaurant merchants to create and schedule bulk promotional SMS campaigns for their customers. The MVP focuses on essential functionalities such as campaign management, SMS scheduling, and billing.
+## 1. Frontend Pages - Detailed Explanation
+The system will have a merchant-facing web application where restaurant owners can log in and manage their SMS campaigns.
 
----
-## 1. Frontend Pages
+### Merchant Dashboard
+This is the landing page for merchants after they log in.
+Displays key metrics such as:
+- Number of SMS campaigns sent.
+- Upcoming scheduled campaigns.
+- Remaining SMS credit balance.
+- Performance reports (click rates, delivery status).
 
-### **Merchant Dashboard**
-- Displays key metrics:
-  - Number of SMS campaigns sent.
-  - Upcoming scheduled campaigns.
-  - Remaining SMS credit balance.
-  - Performance reports (click rates, delivery status).
+### Campaign Creation Page
+A form that allows merchants to set up an SMS campaign:
+- **Campaign Name** - To identify the campaign internally.
+- **Message Content** - The SMS text to be sent.
+- **Recipient List Upload** - Allows merchants to:
+  - Manually enter phone numbers.
+  - Upload a CSV file containing customer details.
+- **Scheduled Send Time** - Choose whether to send immediately or schedule for later.
+- **SMS Cost Estimation** - Based on message length and number of recipients.
 
-### **Campaign Creation Page**
-- Form to create an SMS campaign:
-  - **Campaign Name**
-  - **Message Content**
-  - **Recipient List Upload** (CSV/Manual Entry)
-  - **Scheduled Send Time**
-  - **SMS Cost Estimation**
+### Campaign Management Page
+- A table-style list of all SMS campaigns.
+- Each row will have:
+  - Campaign name, status, scheduled time.
+  - Actions to edit or cancel scheduled campaigns before execution.
+- Detailed campaign reports showing:
+  - SMS delivery success/failure.
 
-### **Campaign Management Page**
-- List of all campaigns with:
-  - Status (Scheduled, Sent, Failed)
-  - Actions to **edit or cancel** scheduled campaigns.
-  - **Detailed reports** on SMS delivery.
+### Billing & Payment Page
+- Displays current SMS credits and payment history.
+- Payment gateway integration for purchasing SMS credits.
 
-### **Billing & Payment Page**
-- Displays **SMS credits** and payment history.
-- Payment gateway integration (Stripe/Razorpay) for purchasing credits.
-
-### **Settings Page**
-- Manage **Sender ID**, **SMS provider settings**, and **Notifications**.
-
----
-## 2. API Requirements
-
-### **Merchant Management APIs**
-- `POST /merchants/register` - Register a new merchant.
-- `POST /merchants/login` - Authenticate merchant.
-- `GET /merchants/profile` - Retrieve merchant details.
-
-### **Campaign Management APIs**
-- `POST /campaigns` - Create a new SMS campaign.
-- `GET /campaigns` - Fetch all campaigns.
-- `GET /campaigns/{id}` - Fetch details of a specific campaign.
-- `PATCH /campaigns/{id}` - Edit campaign details before execution.
-- `DELETE /campaigns/{id}` - Cancel a scheduled campaign.
-
-### **SMS Scheduling APIs**
-- `POST /sms/send` - Send an SMS immediately.
-- `POST /sms/schedule` - Schedule an SMS for future sending.
-- `GET /sms/status/{campaignId}` - Fetch SMS delivery status.
-
-### **Billing & Payment APIs**
-- `GET /billing` - Fetch SMS balance and billing details.
-- `POST /billing/recharge` - Process payment and update SMS credits.
-
-### **External Tool Integrations**
-- **SMS Gateways**: Twilio, Nexmo, MSG91.
-- **Payment Gateways**: Stripe, Razorpay.
-- **Queue System**: Redis + BullMQ or AWS SQS for scheduling messages.
 
 ---
-## 3. Database Schema
+## 2. API Requirements - Detailed Explanation
+The backend will have a RESTful API handling authentication, campaign management, and SMS scheduling.
 
-### **Merchants Table**
-```sql
-CREATE TABLE merchants (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    password_hash TEXT NOT NULL,
-    sms_credits INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+### Merchant Management APIs
+- `POST /merchants/register` - Registers a new restaurant merchant.
+- `POST /merchants/login` - Authenticates the merchant using email & password.
+- `GET /merchants/profile` - Returns the logged-in merchant's details.
 
-### **Campaigns Table**
-```sql
-CREATE TABLE campaigns (
-    id UUID PRIMARY KEY,
-    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    message TEXT NOT NULL,
-    status VARCHAR(50) CHECK (status IN ('Scheduled', 'Sent', 'Failed')),
-    scheduled_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+### Campaign Management APIs
+- `POST /campaigns` - Allows a merchant to create a campaign.
+- `GET /campaigns` - Fetches all campaigns of the logged-in merchant.
+- `GET /campaigns/{id}` - Fetches details of a specific campaign.
+- `PATCH /campaigns/{id}` - Allows merchants to edit campaign details before execution.
+- `DELETE /campaigns/{id}` - Allows merchants to cancel an upcoming campaign.
 
-### **Recipients Table**
-```sql
-CREATE TABLE recipients (
-    id UUID PRIMARY KEY,
-    campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE,
-    phone VARCHAR(20) NOT NULL,
-    status VARCHAR(50) CHECK (status IN ('Pending', 'Sent', 'Failed')),
-    sent_at TIMESTAMP
-);
-```
+### SMS Scheduling APIs
+- `POST /sms/send` - Sends an SMS immediately.
+- `POST /sms/schedule` - Schedules an SMS for future sending.
+- `GET /sms/status/{campaignId}` - Fetches SMS delivery status.
 
-### **Transactions Table**
-```sql
-CREATE TABLE transactions (
-    id UUID PRIMARY KEY,
-    merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
-    amount DECIMAL(10,2) NOT NULL,
-    type VARCHAR(50) CHECK (type IN ('Credit Purchase', 'Refund')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+### Billing & Payment APIs
+- `GET /billing` - Returns the merchant's current SMS balance and payment history.
+- `POST /billing/recharge` - Processes payments for purchasing SMS credits.
+
+### External Tool Integrations
+- **Queue System** (Redis + BullMQ) for scheduling SMS messages.
+
+---
+## 3. Database Schema - Detailed Explanation
+A relational database like PostgreSQL or MySQL is used to store merchants, campaigns, recipients, and transactions.
+
+```json
+{
+  "merchants": {
+    "id": "UUID",
+    "name": "VARCHAR(255)",
+    "email": "VARCHAR(255) UNIQUE",
+    "phone": "VARCHAR(20)",
+    "password_hash": "TEXT",
+    "sms_credits": "INT DEFAULT 0",
+    "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  },
+  "campaigns": {
+    "id": "UUID",
+    "merchant_id": "UUID REFERENCES merchants(id) ON DELETE CASCADE",
+    "name": "VARCHAR(255)",
+    "message": "TEXT",
+    "status": "VARCHAR(50) CHECK (status IN ('Scheduled', 'Sent', 'Failed'))",
+    "scheduled_at": "TIMESTAMP",
+    "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  },
+  "recipients": {
+    "id": "UUID",
+    "campaign_id": "UUID REFERENCES campaigns(id) ON DELETE CASCADE",
+    "phone": "VARCHAR(20)",
+    "status": "VARCHAR(50) CHECK (status IN ('Pending', 'Sent', 'Failed'))",
+    "sent_at": "TIMESTAMP"
+  },
+  "transactions": {
+    "id": "UUID",
+    "merchant_id": "UUID REFERENCES merchants(id) ON DELETE CASCADE",
+    "amount": "DECIMAL(10,2)",
+    "type": "VARCHAR(50) CHECK (type IN ('Credit Purchase', 'Refund'))",
+    "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  }
+}
 ```
 
 ---
-## 4. SMS Scheduling & Processing
+## 4. SMS Scheduling & Processing - Detailed
 
-### **How Scheduling Works**
-1. Merchant **creates** a campaign via `POST /campaigns`.
-2. The system **validates** and stores the campaign.
-3. If **scheduled**, a **Redis Job (BullMQ) ** is created.
-4. When the time arrives:
-   - The job **retrieves recipients**.
+### How Scheduling Works
+1. Merchant creates a campaign via `POST /campaigns`.
+2. The system validates the request and stores it in the database.
+3. If scheduled, a Redis Job (BullMQ) or AWS SQS is created.
+4. When the scheduled time arrives:
+   - The job retrieves the recipient list.
    - Sends SMS.
-   - Updates recipient **delivery status**.
+   - Updates recipient delivery status in the database.
 
-### **How Payment Works**
-1. Merchant selects an SMS **credit package**.
+### How Payment Works
+1. Merchant selects an SMS credit package.
 2. `POST /billing/recharge` is triggered.
-3. Payment gateway handles authentication.
-4. On success:
-   - **SMS credit balance** is updated.
-   - **Transaction record** is stored.
+3. Payment gateway handles payment authentication.
+4. On successful payment:
+   - The merchant's SMS credit is updated.
+   - A transaction record is created.
 
 ---
-
