@@ -1,4 +1,4 @@
-# Automated SMS Scheduler System - MVP
+# Automated SMS Scheduler System Design 
 
 ## 1. Frontend Pages - Detailed Explanation
 The system will have a merchant-facing web application where restaurant owners can log in and manage their SMS campaigns.
