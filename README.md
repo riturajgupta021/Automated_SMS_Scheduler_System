@@ -106,7 +106,7 @@ A relational database like PostgreSQL or MySQL is used to store merchants, campa
 ---
 ## 4. SMS Scheduling & Processing - Detailed
 
-### How Scheduling Works
+### Scheduling Works
 1. Merchant creates a campaign via `POST /campaigns`.
 2. The system validates the request and stores it in the database.
 3. If scheduled, a Redis Job (BullMQ) or AWS SQS is created.
@@ -115,7 +115,7 @@ A relational database like PostgreSQL or MySQL is used to store merchants, campa
    - Sends SMS.
    - Updates recipient delivery status in the database.
 
-### How Payment Works
+### Payment Works
 1. Merchant selects an SMS credit package.
 2. `POST /billing/recharge` is triggered.
 3. Payment gateway handles payment authentication.
