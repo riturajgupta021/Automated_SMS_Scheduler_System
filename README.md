@@ -120,29 +120,19 @@ CREATE TABLE transactions (
 ### **How Scheduling Works**
 1. Merchant **creates** a campaign via `POST /campaigns`.
 2. The system **validates** and stores the campaign.
-3. If **scheduled**, a **Redis Job (BullMQ) or AWS SQS** is created.
+3. If **scheduled**, a **Redis Job (BullMQ) ** is created.
 4. When the time arrives:
    - The job **retrieves recipients**.
-   - Sends SMS via **Twilio/Nexmo API**.
+   - Sends SMS.
    - Updates recipient **delivery status**.
 
 ### **How Payment Works**
 1. Merchant selects an SMS **credit package**.
 2. `POST /billing/recharge` is triggered.
-3. Payment gateway (Stripe/Razorpay) handles authentication.
+3. Payment gateway handles authentication.
 4. On success:
    - **SMS credit balance** is updated.
    - **Transaction record** is stored.
 
 ---
-## 5. Future Enhancements
-- **Multi-SMS Provider Support**: Switch between different SMS providers.
-- **AI-based Customer Segmentation**: Suggest target customers.
-- **Automated Reports**: Detailed analytics.
-- **Personalized SMS**: Use templates with placeholders.
 
----
-## 6. Conclusion
-This MVP provides **restaurant merchants** with a robust and scalable system for sending promotional SMS messages. The architecture ensures **flexibility**, **easy provider switching**, and **efficient queue management**.
-
----
